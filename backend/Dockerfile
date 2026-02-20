@@ -1,17 +1,23 @@
 # Build stage
 FROM node:18 AS builder
 WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm install
+
+# Copy all files first
 COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Generate Prisma client
 RUN npx prisma generate
+
+# Build the application
 RUN npm run build
 
 # Production stage
 FROM node:18-slim
 WORKDIR /app
-RUN apt-get update && apt-get install -y openssl bash && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
