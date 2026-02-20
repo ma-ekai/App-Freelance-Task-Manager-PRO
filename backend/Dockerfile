@@ -1,9 +1,7 @@
-# Build stage
-FROM node:18-buster AS builder
-WORKDIR /app
 
-# Install dependencies for Prisma
-RUN apt-get update && apt-get install -y openssl libssl-dev
+# Build stage
+FROM node:18-bookworm AS builder
+WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
@@ -22,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:18-buster-slim
+FROM node:18-bookworm-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/dist ./dist
@@ -33,3 +31,4 @@ COPY start.sh .
 RUN chmod +x start.sh
 EXPOSE 4000
 CMD ["./start.sh"]
+
