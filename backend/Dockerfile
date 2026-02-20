@@ -1,4 +1,3 @@
-
 # Build stage
 FROM node:18-bookworm AS builder
 WORKDIR /app
@@ -9,6 +8,9 @@ COPY prisma ./prisma/
 
 # Install dependencies
 RUN npm install
+
+# Install TypeScript globally
+RUN npm install -g typescript
 
 # Generate Prisma client
 RUN npx prisma generate
