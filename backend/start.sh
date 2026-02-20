@@ -1,7 +1,4 @@
-#!/bin/sh
-
-# Generate Prisma Client
-npx prisma generate
+#!/bin/bash
 
 # Apply migrations
 echo "Applying database migrations..."
