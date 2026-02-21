@@ -12,7 +12,7 @@ RUN npm install
 # Install TypeScript globally
 RUN npm install -g typescript
 
-# Generate Prisma client 
+# Generate Prisma client
 RUN npx prisma generate && echo "schema-v2-subtask"
 
 # Copy rest of files
@@ -29,8 +29,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
-COPY start.sh .
-RUN chmod +x start.sh
 EXPOSE 4000
-CMD ["./start.sh"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push && node dist/index.js"]
 
