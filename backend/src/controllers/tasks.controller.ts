@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const getTasks = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const { page, limit, projectId, clientId, priority, status } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const limitNum = parseInt(limit as string) || 20;
@@ -17,7 +17,7 @@ export const getTasks = async (req: Request, res: Response) => {
   if (status) where.status = status;
 
   const [data, total] = await Promise.all([
-    prisma.task.findMany({ where, skip, take: limitNum, include: { subtasks: true }, orderBy: { createdAt: 'desc' } }),
+    prisma.task.findMany({ where, skip, take: limitNum, orderBy: { createdAt: 'desc' } }),
     prisma.task.count({ where })
   ]);
 
@@ -25,20 +25,20 @@ export const getTasks = async (req: Request, res: Response) => {
 };
 
 export const getTask = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
-  const task = await prisma.task.findFirst({ where: { id: req.params.id, userId }, include: { subtasks: true } });
+  const userId = (req as any).userId || (req as any).user?.id;
+  const task = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
   if (!task) return res.status(404).json({ error: 'Task not found' });
   res.json(task);
 };
 
 export const createTask = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const task = await prisma.task.create({ data: { ...req.body, userId } });
   res.status(201).json(task);
 };
 
 export const updateTask = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
   if (!existing) return res.status(404).json({ error: 'Task not found' });
   const task = await prisma.task.update({ where: { id: req.params.id }, data: req.body });
@@ -46,7 +46,7 @@ export const updateTask = async (req: Request, res: Response) => {
 };
 
 export const updateTaskStatus = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const { status } = req.body;
   const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
   if (!existing) return res.status(404).json({ error: 'Task not found' });
@@ -55,7 +55,7 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
 };
 
 export const deleteTask = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
   if (!existing) return res.status(404).json({ error: 'Task not found' });
   await prisma.task.delete({ where: { id: req.params.id } });
@@ -63,7 +63,7 @@ export const deleteTask = async (req: Request, res: Response) => {
 };
 
 export const getKanban = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id || (req as any).user?.userId;
+  const userId = (req as any).userId || (req as any).user?.id;
   const { projectId, clientId, priority } = req.query;
 
   const where: any = { userId };
@@ -71,7 +71,7 @@ export const getKanban = async (req: Request, res: Response) => {
   if (clientId) where.clientId = clientId;
   if (priority) where.priority = priority;
 
-  const tasks = await prisma.task.findMany({ where, include: { subtasks: true }, orderBy: { createdAt: 'desc' } });
+  const tasks = await prisma.task.findMany({ where, orderBy: { createdAt: 'desc' } });
 
   const columns = ['todo', 'doing', 'blocked', 'review', 'done'];
   const kanban: Record<string, typeof tasks> = {};

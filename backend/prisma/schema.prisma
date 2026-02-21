@@ -8,14 +8,14 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  email         String    @unique
-  passwordHash  String
-  createdAt     DateTime  @default(now())
-  clients       Client[]
-  projects      Project[]
-  tasks         Task[]
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  clients      Client[]
+  projects     Project[]
+  tasks        Task[]
 }
 
 model Client {
@@ -33,17 +33,17 @@ model Client {
 }
 
 model Project {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   clientId    String?
-  client      Client?  @relation(fields: [clientId], references: [id])
+  client      Client?   @relation(fields: [clientId], references: [id])
   name        String
   description String?
-  status      String   @default("active") // active, paused, closed
+  status      String    @default("active")
   startDate   DateTime?
   endDate     DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   tasks       Task[]
 }
 
@@ -58,9 +58,19 @@ model Task {
   title       String
   description String?
   category    String?
-  priority    String    @default("medium") // low, medium, high, critical
-  status      String    @default("todo") // todo, doing, blocked, review, done
+  priority    String    @default("medium")
+  status      String    @default("todo")
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  subtasks    Subtask[]
+}
+
+model Subtask {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
