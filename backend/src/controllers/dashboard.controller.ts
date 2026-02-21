@@ -29,6 +29,7 @@ export const getSummary = async (req: Request, res: Response) => {
       prisma.task.count({ where: { userId } }),
       prisma.client.count({ where: { userId } }),
       prisma.task.count({ where: { userId, status: { in: ['todo', 'doing', 'blocked', 'review'] } } }),
+    ]);
 
     const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
