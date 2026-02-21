@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Apply migrations
-echo "Applying database migrations..."
-npx prisma migrate deploy
+# Sync database schema (creates/updates tables)
+echo "Syncing database schema..."
+node node_modules/prisma/build/index.js db push
 
 # Start the application
 echo "Starting application..."
