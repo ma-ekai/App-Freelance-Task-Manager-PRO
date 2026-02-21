@@ -1,178 +1,233 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api';
-import { Task, Project, Client } from '../types';
-import { Plus, Search, Filter, CheckCircle2, Circle, AlertCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import api from '../api/api';
 
-const Tasks: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [showModal, setShowModal] = useState(false);
-    const [search, setSearch] = useState('');
-    const [filterStatus, setFilterStatus] = useState('');
-    const [newTask, setNewTask] = useState({ title: '', description: '', projectId: '', priority: 'medium', status: 'todo' });
+const COLUMNS = [
+  { id: 'todo',    label: '📋 To Do',   color: 'bg-gray-100' },
+  { id: 'doing',   label: '⚡ Doing',   color: 'bg-blue-100' },
+  { id: 'blocked', label: '🚫 Blocked', color: 'bg-red-100' },
+  { id: 'review',  label: '👁 Review',  color: 'bg-yellow-100' },
+  { id: 'done',    label: '✅ Done',    color: 'bg-green-100' },
+];
 
-    const fetchData = async () => {
-        try {
-            const { data } = await api.get('/tasks', {
-                params: { search: search || undefined, status: filterStatus || undefined }
-            });
-            setTasks(data);
-            const projRes = await api.get('/projects');
-            setProjects(projRes.data);
-        } catch (error) {
-            console.error('Error fetching tasks', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [search, filterStatus]);
-
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await api.post('/tasks', newTask);
-            setShowModal(false);
-            setNewTask({ title: '', description: '', projectId: '', priority: 'medium', status: 'todo' });
-            fetchData();
-        } catch (error) {
-            alert('Error creating task');
-        }
-    };
-
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case 'critical': return 'text-red-600 bg-red-50';
-            case 'high': return 'text-orange-600 bg-orange-50';
-            case 'medium': return 'text-blue-600 bg-blue-50';
-            case 'low': return 'text-gray-600 bg-gray-50';
-            default: return 'text-gray-600 bg-gray-50';
-        }
-    };
-
-    return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-anthracite-dark">Tasks</h1>
-                    <p className="text-gray-500 mt-1">Keep track of your daily work</p>
-                </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <Plus size={20} />
-                    <span>Add Task</span>
-                </button>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search tasks..."
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-100 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-mint/50 focus:border-mint outline-none transition-all"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                    <select
-                        className="px-4 py-2 rounded-lg border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-mint/50 outline-none"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                        <option value="">All Status</option>
-                        <option value="todo">To Do</option>
-                        <option value="doing">Doing</option>
-                        <option value="done">Done</option>
-                    </select>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                {tasks.map((task) => (
-                    <div key={task.id} className="card py-4 flex items-center gap-4 hover:border-mint/50 transition-all">
-                        <div className="text-gray-300">
-                            {task.status === 'done' ? <CheckCircle2 className="text-mint" /> : <Circle />}
-                        </div>
-                        <div className="flex-1">
-                            <h3 className={`font-semibold ${task.status === 'done' ? 'line-through text-gray-400' : 'text-anthracite'}`}>
-                                {task.title}
-                            </h3>
-                            <div className="flex items-center gap-3 mt-1">
-                                {task.project && (
-                                    <span className="text-xs font-medium text-mint-700 bg-mint-50 px-2 py-0.5 rounded">
-                                        {task.project.name}
-                                    </span>
-                                )}
-                                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${getPriorityColor(task.priority)}`}>
-                                    {task.priority}
-                                </span>
-                                {task.dueDate && (
-                                    <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                                        <Clock size={10} />
-                                        <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {showModal && (
-                <div className="fixed inset-0 bg-anthracite/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-xl border border-gray-100">
-                        <h2 className="text-2xl font-bold mb-6">New Task</h2>
-                        <form onSubmit={handleCreate} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                <input
-                                    required
-                                    className="input-field"
-                                    value={newTask.title}
-                                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
-                                    <select
-                                        className="input-field"
-                                        value={newTask.projectId}
-                                        onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })}
-                                    >
-                                        <option value="">No Project</option>
-                                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                    <select
-                                        className="input-field"
-                                        value={newTask.priority}
-                                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                                    >
-                                        <option value="low">Low</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="high">High</option>
-                                        <option value="critical">Critical</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-3 mt-8">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-500 hover:text-anthracite">Cancel</button>
-                                <button type="submit" className="btn-primary">Create Task</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+const PRIORITY_COLORS: Record<string, string> = {
+  critical: 'bg-red-500 text-white',
+  high:     'bg-orange-400 text-white',
+  medium:   'bg-blue-400 text-white',
+  low:      'bg-gray-400 text-white',
 };
 
-export default Tasks;
+type Task = {
+  id: string; title: string; status: string; priority: string;
+  dueDate?: string; description?: string; projectId?: string;
+  subtasks?: { id: string; title: string; done: boolean }[];
+};
+
+type KanbanBoard = Record<string, Task[]>;
+
+const EMPTY_FORM = { title: '', description: '', priority: 'medium', status: 'todo', dueDate: '' };
+
+export default function Tasks() {
+  const [board, setBoard]         = useState<KanbanBoard>({ todo: [], doing: [], blocked: [], review: [], done: [] });
+  const [loading, setLoading]     = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editTask, setEditTask]   = useState<Task | null>(null);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [saving, setSaving]       = useState(false);
+  const [deleting, setDeleting]   = useState<string | null>(null);
+
+  const fetchKanban = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get<KanbanBoard>('/tasks/kanban');
+      setBoard(data);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchKanban(); }, []);
+
+  const openCreate = () => {
+    setEditTask(null);
+    setForm(EMPTY_FORM);
+    setShowModal(true);
+  };
+
+  const openEdit = (task: Task) => {
+    setEditTask(task);
+    setForm({
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+    });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
+      };
+      if (editTask) {
+        await api.patch(`/tasks/${editTask.id}`, payload);
+      } else {
+        await api.post('/tasks', payload);
+      }
+      setShowModal(false);
+      fetchKanban();
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (taskId: string) => {
+    if (!confirm('¿Eliminar esta tarea?')) return;
+    setDeleting(taskId);
+    try {
+      await api.delete(`/tasks/${taskId}`);
+      fetchKanban();
+    } finally { setDeleting(null); }
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    const { source, destination, draggableId } = result;
+    if (!destination || source.droppableId === destination.droppableId) return;
+    const newBoard = { ...board };
+    const task = newBoard[source.droppableId].find(t => t.id === draggableId)!;
+    newBoard[source.droppableId] = newBoard[source.droppableId].filter(t => t.id !== draggableId);
+    newBoard[destination.droppableId] = [{ ...task, status: destination.droppableId }, ...newBoard[destination.droppableId]];
+    setBoard(newBoard);
+    await api.patch(`/tasks/${draggableId}/status`, { status: destination.droppableId });
+  };
+
+  if (loading) return <div className="p-8 text-center text-gray-500">Cargando tablero…</div>;
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Tablero Kanban</h1>
+        <button onClick={openCreate} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+          <Plus size={18} /> Nueva tarea
+        </button>
+      </div>
+
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map(col => (
+            <div key={col.id} className={`min-w-64 rounded-xl p-3 ${col.color} flex-shrink-0`}>
+              <h2 className="font-semibold text-gray-700 mb-3">
+                {col.label} <span className="text-sm text-gray-500">({board[col.id]?.length || 0})</span>
+              </h2>
+              <Droppable droppableId={col.id}>
+                {provided => (
+                  <div ref={provided.innerRef} {...provided.droppableProps} className="min-h-20 space-y-2">
+                    {(board[col.id] || []).map((task, index) => (
+                      <Draggable key={task.id} draggableId={task.id} index={index}>
+                        {prov => (
+                          <div ref={prov.innerRef} {...prov.draggableProps} {...prov.dragHandleProps}
+                            className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 cursor-grab group">
+                            <div className="flex justify-between items-start gap-2">
+                              <p className="text-sm font-medium text-gray-800 flex-1">{task.title}</p>
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                                <button onClick={() => openEdit(task)} className="text-gray-400 hover:text-blue-600 transition" title="Editar">
+                                  <Pencil size={14} />
+                                </button>
+                                <button onClick={() => handleDelete(task.id)} disabled={deleting === task.id}
+                                  className="text-gray-400 hover:text-red-500 transition" title="Eliminar">
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority] || 'bg-gray-300'}`}>
+                                {task.priority}
+                              </span>
+                              {task.subtasks && task.subtasks.length > 0 && (
+                                <span className="text-xs text-gray-500">{task.subtasks.filter(s => s.done).length}/{task.subtasks.length} ✓</span>
+                              )}
+                            </div>
+                            {task.dueDate && (
+                              <p className="text-xs text-gray-400 mt-1">📅 {new Date(task.dueDate).toLocaleDateString('es-ES')}</p>
+                            )}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    {(board[col.id] || []).length === 0 && (
+                      <p className="text-center text-gray-400 text-xs py-4">Sin tareas</p>
+                    )}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          ))}
+        </div>
+      </DragDropContext>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800">{editTask ? 'Editar tarea' : 'Nueva tarea'}</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                <input required type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <textarea rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prioridad</label>
+                  <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                    <option value="critical">Crítica</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="todo">To Do</option>
+                    <option value="doing">Doing</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="review">Review</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha límite</label>
+                <input type="date" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={saving}
+                  className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">
+                  {saving ? 'Guardando…' : editTask ? 'Guardar cambios' : 'Crear tarea'}
+                </button>
+                <button type="button" onClick={() => setShowModal(false)}
+                  className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
