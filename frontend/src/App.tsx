@@ -20,16 +20,21 @@ const Dashboard = () => {
     });
 
     useEffect(() => {
-        api.get('/dashboard/summary')
-            .then(({ data }) => setSummary({
-                totalClients: data.totalClients ?? '--',
-                activeProjects: data.activeProjects ?? '--',
-                pendingTasks: data.todayTasks ?? '--',
-                completedTasks: data.completedTasks ?? '--',
-                overdueTasks: data.overdueTasks ?? '--',
-                completionPercentage: data.completionPercentage ?? 0
-            }))
-            .catch(() => {});
+        const loadSummary = () => {
+            api.get('/dashboard/summary')
+                .then(({ data }) => setSummary({
+                    totalClients: data.totalClients ?? '--',
+                    activeProjects: data.activeProjects ?? '--',
+                    pendingTasks: data.pendingTasks ?? '--',
+                    completedTasks: data.completedTasks ?? '--',
+                    overdueTasks: data.overdueTasks ?? '--',
+                    completionPercentage: data.completionPercentage ?? 0
+                }))
+                .catch(() => {});
+        };
+        loadSummary();
+        const interval = setInterval(loadSummary, 30000);
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -96,4 +101,3 @@ function App() {
 }
 
 export default App;
-
