@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
-import api from '../api/api';
+import api from '../api';
 
 const COLUMNS = [
   { id: 'todo',    label: '📋 To Do',   color: 'bg-gray-100' },
