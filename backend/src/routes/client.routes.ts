@@ -8,6 +8,7 @@ router.use(authMiddleware);
 
 router.get('/', getClients);
 router.post('/', createClient);
+router.patch('/:id', updateClient);
 router.put('/:id', updateClient);
 router.delete('/:id', deleteClient);
 
