@@ -1,101 +1,213 @@
-# Freelance Task Manager PRO - Phase 1
+# Freelance Task Manager PRO
+## Documentación completa del proyecto — Portfolio Marisa / maekai.es
 
-A full-stack task management application designed for freelancers. Built with a clean **Mint Green** aesthetic and strict user isolation.
+---
 
-## Tech Stack
-- **Frontend**: React + Vite + TypeScript + Tailwind CSS
-- **Backend**: Node.js + Express + TypeScript
-- **ORM**: Prisma + PostgreSQL
-- **Auth**: JWT (Access + Refresh) + Bcrypt
-- **Validation**: Zod (Backend) + React Hook Form (Frontend)
-- **Deployment**: Docker + Docker Compose
+## 🌐 URLs del Proyecto
 
-## Local Development
+- **App en producción:** https://app.taskmanager.maekai.es
+- **API pública:** https://api.taskmanager.maekai.es
+- **Repositorio GitHub:** https://github.com/ma-ekai/App-Freelance-Task-Manager-PRO
 
-### 1. Prerequisites
-- Docker & Docker Compose
-- Node.js (version 18+)
+---
 
-### 2. Environment Setup
-Create a `.env` file in the root based on `.env.example`:
-```bash
-cp .env.example .env
-```
+## 📋 Descripción
 
-### 3. Spin up with Docker
-```bash
+Freelance Task Manager PRO es una aplicación web fullstack diseñada específicamente para profesionales freelance que necesitan gestionar su negocio desde un único lugar. Permite organizar clientes, proyectos y tareas con un sistema de autenticación seguro y aislamiento total de datos por usuario.
+
+La interfaz sigue una estética minimalista en tonos **Mint Green y Anthracite**.
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+┌─────────────────────────────────────────────────────┐ │ INTERNET │ └──────────────────────┬──────────────────────────────┘ │ HTTPS ┌──────────────────────▼──────────────────────────────┐ │ EasyPanel / Traefik (Proxy) │ │ maekai.es │ └──────┬──────────────────────────┬───────────────────┘ │ │ ┌──────▼──────────┐ ┌──────────▼──────────┐ │ FRONTEND │ │ BACKEND │ │ app.taskmanager│ │ api.taskmanager │ │ .maekai.es │ │ .maekai.es │ │ React + Nginx │ │ Node.js + Express │ │ Puerto: 80 │ │ Puerto: 4000 │ └─────────────────┘ └──────────┬──────────┘ │ ┌──────────▼──────────┐ │ BASE DE DATOS │ │ db-taskmanager │ │ PostgreSQL 17 │ │ Puerto: 5432 │ └─────────────────────┘
+
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Frontend
+- React 18 + TypeScript
+- Vite (bundler)
+- Tailwind CSS
+- React Router DOM v6
+- React Hook Form + Zod
+- Axios
+
+### Backend
+- Node.js + Express + TypeScript
+- Prisma ORM
+- PostgreSQL 17
+- JWT (Access Token + Refresh Token)
+- Bcrypt
+- Helmet + Express Rate Limit
+- Cookie Parser
+
+### Infraestructura
+- Docker + Nginx
+- VPS Hostinger
+- EasyPanel (panel de despliegue)
+- Let's Encrypt (SSL automático)
+
+---
+
+## 🗄️ Modelo de Datos
+
+```prisma
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  clients       Client[]
+  projects      Project[]
+  tasks         Task[]
+}
+
+model Client {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  projects  Project[]
+  tasks     Task[]
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id])
+  name        String
+  description String?
+  status      String    @default("active") // active, paused, closed
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  tasks       Task[]
+}
+
+model Task {
+  id               String    @id @default(uuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  projectId        String?
+  project          Project?  @relation(fields: [projectId], references: [id])
+  clientId         String?
+  client           Client?   @relation(fields: [clientId], references: [id])
+  title            String
+  description      String?
+  category         String?
+  priority         String    @default("medium") // low, medium, high, critical
+  status           String    @default("todo") // todo, doing, blocked, review, done
+  dueDate          DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+🔐 Sistema de Autenticación
+Implementa un patrón de doble token JWT:
+
+Access Token: Corta duración, almacenado en localStorage
+Refresh Token: 7 días, almacenado en cookie httpOnly (inaccesible desde JavaScript, protegido contra XSS)
+En producción: cookie marcada como Secure (HTTPS only) y SameSite=Strict
+📡 Endpoints de la API REST
+Método	Ruta	Descripción	Auth
+POST	/auth/register	Registro de nuevo usuario	❌
+POST	/auth/login	Login y generación de tokens	❌
+POST	/auth/refresh	Renovar Access Token	❌
+POST	/auth/logout	Cerrar sesión y limpiar cookie	✅
+GET/POST	/clients	Listar y crear clientes	✅
+GET/PUT/DELETE	/clients/:id	Gestionar cliente específico	✅
+GET/POST	/projects	Listar y crear proyectos	✅
+GET/PUT/DELETE	/projects/:id	Gestionar proyecto específico	✅
+GET/POST	/tasks	Listar y crear tareas	✅
+GET/PUT/DELETE	/tasks/:id	Gestionar tarea específica	✅
+GET	/health	Healthcheck del servidor	❌
+🔒 Seguridad Implementada
+Helmet: Cabeceras HTTP seguras
+Rate Limiting:
+/auth: 10 peticiones/minuto (anti brute force)
+Resto de rutas: 100 peticiones/15 minutos
+CORS: Solo acepta peticiones desde el dominio del frontend
+Bcrypt: Hash de contraseñas con salt rounds
+httpOnly cookies: Refresh token inaccesible desde JavaScript
+🚀 Infraestructura de Despliegue
+Servicio	Nombre en EasyPanel	Dominio	Puerto
+Frontend	app-taskmanager	app.taskmanager.maekai.es	80
+Backend	api-taskmanager	api.taskmanager.maekai.es	4000
+Base de datos	db-taskmanager	seguimiento-workana_db-taskmanager	5432
+Proyecto EasyPanel: seguimiento-workana VPS: Hostinger Panel: EasyPanel (licencia gratuita)
+
+⚙️ Variables de Entorno
+Backend (api-taskmanager)
+DATABASE_URL=postgres://postgres:PASSWORD@seguimiento-workana_db-taskmanager:5432/freelance_db?sslmode=disable
+JWT_SECRET=maekai-taskmanager-jwt-secret-2026
+JWT_REFRESH_SECRET=maekai-taskmanager-refresh-secret-2026
+PORT=4000
+NODE_ENV=production
+APP_URL=https://app.taskmanager.maekai.es
+Frontend (app-taskmanager)
+VITE_API_URL=https://api.taskmanager.maekai.es
+✅ Funcionalidades Fase 1
+Registro e inicio de sesión de usuarios
+Autenticación JWT con doble token (Access + Refresh)
+Dashboard con resumen de clientes, proyectos y tareas
+Gestión completa de clientes (CRUD)
+Gestión completa de proyectos con estados
+Gestión completa de tareas con prioridades y estados
+Rutas protegidas con redirección automática
+Aislamiento total de datos por usuario
+Interfaz responsive con diseño Mint Green
+🧩 Fases del Proyecto
+Fase	Descripción	Estado
+Fase 1	Base fullstack + Auth + CRUD	✅ Completada
+Fase 2	Kanban + Calendario + Subtareas + Dashboard real	🔜 Pendiente
+Fase 3	Recordatorios por email (cron + idempotencia)	🔜 Pendiente
+Fase 4	Time tracking + métricas freelancer	🔜 Pendiente
+Fase 5	Import/Export CSV + backups	🔜 Pendiente
+🐛 Retos Técnicos Resueltos en Fase 1
+Durante el despliegue se resolvieron varios retos técnicos relevantes que son útiles documentar para futuras fases:
+
+1. Permisos de binarios en Docker (Windows → Linux) Al construir la imagen en Windows, los binarios de node_modules/.bin/ perdían el bit de ejecución al copiarse al contenedor Linux. Solución: chmod +x node_modules/.bin/vite en el Dockerfile y .dockerignore para excluir node_modules locales.
+
+2. Inyección de variables de entorno en Vite Las variables VITE_* deben estar disponibles en tiempo de build, no en tiempo de ejecución. Solución: declarar ENV VITE_API_URL=https://api.taskmanager.maekai.es directamente en el Dockerfile antes del RUN npm run build.
+
+3. CORS en producción con subdominios separados El frontend y backend usan subdominios independientes. Solución: configurar APP_URL en las variables de entorno del backend y añadir credentials: true en la configuración de CORS.
+
+4. Migraciones de Prisma en producción El binario de Prisma tampoco tenía permisos de ejecución. Solución: chmod +x node_modules/.bin/prisma y ejecutar npx prisma db push manualmente desde la consola Bash de EasyPanel para la creación inicial de tablas.
+
+💻 Desarrollo Local
+Requisitos
+Docker & Docker Compose
+Node.js 18+
+Configuración
+Copycp .env.example .env
 docker-compose up --build
-```
-This will start:
-- **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:4000
-- **Postgres**: localhost:5432
-
-### 4. Database Migrations (Manual)
-If you need to run migrations manually from the `backend` folder:
-```bash
-cd backend
-npx prisma migrate dev --name init # For development
-npm run prisma:deploy              # For production
-```
-
-## Deployment on VPS (EasyPanel - Docker)
-
-1. **Host on Github**: Push this repository to your private/public Github repo.
-2. **EasyPanel Setup**:
-   - Create a new Project in EasyPanel.
-   - Add a **PostgreSQL** service and copy the connection string.
-   - Add a **Service** from Github.
-   - Select the repository.
-   - Select **Docker Compose** as the deployment type (EasyPanel supports this).
-3. **Environment Variables**:
-   Set the following variables in EasyPanel:
-   - `DATABASE_URL`: Your PostgreSQL connection string.
-   - `JWT_SECRET`: A long random string.
-   - `JWT_REFRESH_SECRET`: Another long random string.
-   - `APP_URL`: Your production URL (e.g., https://tasks.yourdomain.com).
-   - `PORT_BACKEND`: 4000
-   - `PORT_FRONTEND`: 80 (The frontend Dockerfile uses Nginx on port 80).
-
-> [!NOTE]
-> The backend is configured to automatically run `prisma migrate deploy` upon startup in the production container. No manual migration step is required in EasyPanel.
-
-## Authentication Workflow (Production)
-Upon deployment:
-1. **Domains**: Ensure `APP_URL` (Backend CORS) and `VITE_API_URL` (Frontend API) are correctly set.
-2. **Persistence**:
-   - **Access Token**: Stored in `localStorage` for rapid client-side access.
-   - **Refresh Token**: Stored in a **secure, httpOnly cookie**. This prevents XSS attacks from stealing the long-lived token.
-3. **Domain Security**: In production, the cookie is marked as `Secure` (HTTPS only) and `SameSite=Strict`.
-
-## Technical Features
-
-### Healthchecks
-Both **Backend** and **Frontend** services include Docker healthchecks:
-- **Backend**: Verifies the `/health` endpoint is reachable.
-- **Frontend**: Confirms the Nginx/Vite server is serving the application.
-- Status can be checked via `docker compose ps`.
-
-### Security
-The application includes several security layers:
-- **Helmet**: Secures the app by setting various HTTP headers.
-- **Express Rate Limit**: 
-  - Strict limit on `/auth` (10 requests/min) to prevent brute force.
-  - General limit on all other routes (100 requests/15 mins).
-- **Prisma Studio**: Only intended for development. It is not exposed to the public web in the production Docker configuration.
-
-### Demo Data (Seeding)
-You can populate your local database with demo data (User, Client, Project, Tasks):
-1. Ensure the database is running.
-2. Run the seed command from the `backend` folder:
-```bash
-cd backend
+URLs locales
+Frontend: http://localhost:5173
+Backend: http://localhost:4000
+PostgreSQL: localhost:5432
+Migraciones manuales
+Copycd backend
+npx prisma migrate dev --name init
+Seed de datos de prueba
+Copycd backend
 npm run prisma:seed
-```
-> [!IMPORTANT]
-> The seed script uses `upsert` for the user but creates new clients/projects. Running it multiple times will create duplicate records for clients/projects.
 
-## Project Structure
-- `/frontend`: React client code, Tailwind config, components, and pages.
-- `/backend`: Express server, Prisma schema, auth logic, and CRUD controllers.
-- `docker-compose.yml`: Local orchestration.
+---
+
+Guarda con **Ctrl + S** y luego haz el push:
+
+```cmd
+git add README.md
+Copygit commit -m "docs: documentación completa Fase 1 para portfolio"
