@@ -18,6 +18,8 @@ const PRIORITY_COLORS: Record<string, string> = {
   low:      'bg-gray-400 text-white',
 };
 
+type Project = { id: string; name: string; };
+
 type Task = {
   id: string; title: string; status: string; priority: string;
   dueDate?: string; description?: string; projectId?: string;
@@ -26,10 +28,11 @@ type Task = {
 
 type KanbanBoard = Record<string, Task[]>;
 
-const EMPTY_FORM = { title: '', description: '', priority: 'medium', status: 'todo', dueDate: '' };
+const EMPTY_FORM = { title: '', description: '', priority: 'medium', status: 'todo', dueDate: '', projectId: '' };
 
 export default function Tasks() {
   const [board, setBoard]         = useState<KanbanBoard>({ todo: [], doing: [], blocked: [], review: [], done: [] });
+  const [projects, setProjects]   = useState<Project[]>([]);
   const [loading, setLoading]     = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editTask, setEditTask]   = useState<Task | null>(null);
@@ -45,7 +48,23 @@ export default function Tasks() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchKanban(); }, []);
+  const fetchProjects = async () => {
+    try {
+      const { data } = await api.get('/projects');
+      setProjects(data);
+    } catch { /* silencioso */ }
+  };
+
+  useEffect(() => {
+    fetchKanban();
+    fetchProjects();
+  }, []);
+
+  const getProjectName = (projectId?: string) => {
+    if (!projectId) return null;
+    const project = projects.find(p => p.id === projectId);
+    return project ? project.name : null;
+  };
 
   const openCreate = () => {
     setEditTask(null);
@@ -61,6 +80,7 @@ export default function Tasks() {
       priority: task.priority,
       status: task.status,
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+      projectId: task.projectId || '',
     });
     setShowModal(true);
   };
@@ -71,6 +91,7 @@ export default function Tasks() {
     try {
       const payload = {
         ...form,
+        projectId: form.projectId || null,
         dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
       };
       if (editTask) {
@@ -141,6 +162,13 @@ export default function Tasks() {
                                 </button>
                               </div>
                             </div>
+
+                            {getProjectName(task.projectId) && (
+                              <p className="text-xs text-blue-600 font-medium mt-1 truncate">
+                                📁 {getProjectName(task.projectId)}
+                              </p>
+                            )}
+
                             <div className="flex items-center justify-between mt-2">
                               <span className={`text-xs px-2 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority] || 'bg-gray-300'}`}>
                                 {task.priority}
@@ -180,6 +208,16 @@ export default function Tasks() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input required type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Proyecto</label>
+                <select value={form.projectId} onChange={e => setForm({ ...form, projectId: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  <option value="">Sin proyecto</option>
+                  {projects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
