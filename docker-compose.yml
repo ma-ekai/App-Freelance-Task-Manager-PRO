@@ -35,11 +35,12 @@ services:
       start_period: 10s
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
     container_name: freelance-frontend
     restart: always
-    environment:
-      VITE_API_URL: http://localhost:4000
     ports:
       - "5173:80"
     healthcheck:

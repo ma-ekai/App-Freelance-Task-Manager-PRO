@@ -5,7 +5,8 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN chmod +x node_modules/.bin/vite
-ENV VITE_API_URL=https://api.taskmanager.maekai.es
+ARG VITE_API_URL=http://localhost:4000
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Production stage
