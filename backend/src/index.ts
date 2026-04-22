@@ -39,11 +39,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+import aiRoutes from './routes/ai.routes';
+
 app.use('/auth', authLimiter, authRoutes);
 app.use('/clients', clientRoutes);
 app.use('/projects', projectRoutes);
 app.use('/tasks', taskRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/ai', aiRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });

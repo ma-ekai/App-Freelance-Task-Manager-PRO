@@ -40,33 +40,33 @@ const Dashboard = () => {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-anthracite-dark">Dashboard</h1>
-                <p className="text-gray-500 mt-1">Overview of your freelance business</p>
+                <h1 className="text-3xl font-light text-anthracite-dark">Tu centro de mandos</h1>
+                <p className="text-gray-500 mt-2 font-medium tracking-wide">No soy tu asistente. Soy tu ventaja.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card bg-mint-50 border-mint-200">
-                    <h3 className="text-sm font-semibold text-mint-700 uppercase tracking-wider">Total Clients</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.totalClients}</p>
+                <div className="card border-0 bg-white shadow-sm ring-1 ring-gray-100 p-8">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Clientes Activos</h3>
+                    <p className="text-4xl font-light text-anthracite">{summary.totalClients}</p>
                 </div>
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Projects</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.activeProjects}</p>
+                <div className="card border-0 bg-white shadow-sm ring-1 ring-gray-100 p-8">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Proyectos en marcha</h3>
+                    <p className="text-4xl font-light text-anthracite">{summary.activeProjects}</p>
                 </div>
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending Tasks</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.pendingTasks}</p>
+                <div className="card border-0 bg-white shadow-sm ring-1 ring-gray-100 p-8">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Tareas Pendientes</h3>
+                    <p className="text-4xl font-light text-anthracite">{summary.pendingTasks}</p>
                 </div>
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Completed Tasks</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.completedTasks}</p>
+                <div className="card border-0 bg-white shadow-sm ring-1 ring-gray-100 p-8">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Tareas Completadas</h3>
+                    <p className="text-4xl font-light text-anthracite">{summary.completedTasks}</p>
                 </div>
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Overdue Tasks</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.overdueTasks}</p>
+                <div className="card border-0 bg-red-50/50 shadow-sm ring-1 ring-red-100 p-8">
+                    <h3 className="text-xs font-semibold text-red-400 uppercase tracking-widest mb-2">Foco Urgente (Vencidas)</h3>
+                    <p className="text-4xl font-light text-red-600">{summary.overdueTasks}</p>
                 </div>
-                <div className="card">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Completion</h3>
-                    <p className="text-3xl font-bold text-anthracite mt-2">{summary.completionPercentage}%</p>
+                <div className="card border-0 bg-mint-50/50 shadow-sm ring-1 ring-mint-200 p-8">
+                    <h3 className="text-xs font-semibold text-mint-700 uppercase tracking-widest mb-2">Índice de Claridad (Completado)</h3>
+                    <p className="text-4xl font-light text-mint-700">{summary.completionPercentage}%</p>
                 </div>
             </div>
         </div>
