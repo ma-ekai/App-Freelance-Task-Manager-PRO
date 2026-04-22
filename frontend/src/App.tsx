@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Clients from './pages/Clients';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
+import Settings from './pages/Settings';
 import api from './api';
 
 const Dashboard = () => {
@@ -73,7 +74,7 @@ const Dashboard = () => {
     );
 };
 
-const Settings = () => <div className="card"><h1>Settings</h1><p className="text-gray-500">Account settings.</p></div>;
+
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { user, loading } = useAuth();
