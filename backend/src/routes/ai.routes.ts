@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { organizeTasks } from '../controllers/ai.controller';
-import { verifyToken } from '../middleware/auth.middleware';
+import { authenticateToken } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Protegemos la ruta con verifyToken
-router.use(verifyToken);
+// Protegemos la ruta con authenticateToken
+router.use(authenticateToken);
 
 router.post('/organize-tasks', organizeTasks);
 
