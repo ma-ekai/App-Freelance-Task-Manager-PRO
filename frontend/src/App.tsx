@@ -8,6 +8,8 @@ import Clients from './pages/Clients';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Settings from './pages/Settings';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import api from './api';
 
 const Dashboard = () => {
@@ -90,6 +92,8 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
                     <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
