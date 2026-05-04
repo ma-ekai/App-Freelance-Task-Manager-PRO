@@ -27,7 +27,7 @@ export const organizeTasks = async (req: Request, res: Response) => {
 
     if (title.includes('email') || title.includes('factura') || title.includes('presupuesto')) {
       aiBlocks.admin.push(task);
-    } else if (task.type === 'DAILY') {
+    } else if ((task as any).type === 'DAILY') {
       // Las tareas diarias suelen ser rutinas rápidas
       aiBlocks.rapidas.push(task);
     } else if (title.includes('diseño') || title.includes('estrategia') || title.includes('redactar') || isHighPriority) {

@@ -12,11 +12,11 @@ RUN npm install
 # Install TypeScript globally
 RUN npm install -g typescript
 
-# Generate Prisma client
-RUN npx prisma generate && echo "schema-v2-subtask"
-
 # Copy rest of files
 COPY . .
+
+# Generate Prisma client with latest schema
+RUN npx prisma generate
 
 # Build the application
 RUN npm run build
