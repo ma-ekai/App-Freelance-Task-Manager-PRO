@@ -128,6 +128,11 @@ export default function Tasks() {
       setShowModal(false);
       fetchKanban();
       if (viewMode === 'ai') organizeWithAi(); // Refrescar vista IA si estábamos en ella
+    } catch (error: any) {
+      console.error('Error al guardar la tarea:', error);
+      const msg = error.response?.data?.error || error.message || 'Error desconocido';
+      const details = error.response?.data?.details ? `\n\nDetalles: ${error.response.data.details}` : '';
+      alert(`No se pudo guardar la tarea: ${msg}${details}`);
     } finally { setSaving(false); }
   };
 

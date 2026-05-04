@@ -32,34 +32,55 @@ export const getTask = async (req: Request, res: Response) => {
 };
 
 export const createTask = async (req: Request, res: Response) => {
-  const userId = (req as any).userId || (req as any).user?.id;
-  const task = await prisma.task.create({ data: { ...req.body, userId } });
-  res.status(201).json(task);
+  try {
+    const userId = (req as any).userId || (req as any).user?.id;
+    console.log('Creating task for user:', userId, 'Data:', req.body);
+    const task = await prisma.task.create({ data: { ...req.body, userId } });
+    res.status(201).json(task);
+  } catch (error: any) {
+    console.error('Error creating task:', error);
+    res.status(500).json({ error: 'Failed to create task', details: error.message });
+  }
 };
 
 export const updateTask = async (req: Request, res: Response) => {
-  const userId = (req as any).userId || (req as any).user?.id;
-  const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
-  if (!existing) return res.status(404).json({ error: 'Task not found' });
-  const task = await prisma.task.update({ where: { id: req.params.id }, data: req.body });
-  res.json(task);
+  try {
+    const userId = (req as any).userId || (req as any).user?.id;
+    const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
+    if (!existing) return res.status(404).json({ error: 'Task not found' });
+    const task = await prisma.task.update({ where: { id: req.params.id }, data: req.body });
+    res.json(task);
+  } catch (error: any) {
+    console.error('Error updating task:', error);
+    res.status(500).json({ error: 'Failed to update task', details: error.message });
+  }
 };
 
 export const updateTaskStatus = async (req: Request, res: Response) => {
-  const userId = (req as any).userId || (req as any).user?.id;
-  const { status } = req.body;
-  const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
-  if (!existing) return res.status(404).json({ error: 'Task not found' });
-  const task = await prisma.task.update({ where: { id: req.params.id }, data: { status } });
-  res.json(task);
+  try {
+    const userId = (req as any).userId || (req as any).user?.id;
+    const { status } = req.body;
+    const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
+    if (!existing) return res.status(404).json({ error: 'Task not found' });
+    const task = await prisma.task.update({ where: { id: req.params.id }, data: { status } });
+    res.json(task);
+  } catch (error: any) {
+    console.error('Error updating task status:', error);
+    res.status(500).json({ error: 'Failed to update task status' });
+  }
 };
 
 export const deleteTask = async (req: Request, res: Response) => {
-  const userId = (req as any).userId || (req as any).user?.id;
-  const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
-  if (!existing) return res.status(404).json({ error: 'Task not found' });
-  await prisma.task.delete({ where: { id: req.params.id } });
-  res.status(204).send();
+  try {
+    const userId = (req as any).userId || (req as any).user?.id;
+    const existing = await prisma.task.findFirst({ where: { id: req.params.id, userId } });
+    if (!existing) return res.status(404).json({ error: 'Task not found' });
+    await prisma.task.delete({ where: { id: req.params.id } });
+    res.status(204).send();
+  } catch (error: any) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ error: 'Failed to delete task' });
+  }
 };
 
 export const getKanban = async (req: Request, res: Response) => {
