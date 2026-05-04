@@ -30,5 +30,5 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 EXPOSE 4000
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push && node dist/index.js"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --accept-data-loss && node dist/index.js"]
 

@@ -1,8 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = new PrismaClient() as any;
+import prisma from '../utils/prisma';
 
 export const getSubtasks = async (req: Request, res: Response) => {
   try {
