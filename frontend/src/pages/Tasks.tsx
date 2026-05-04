@@ -29,13 +29,14 @@ type Project = { id: string; name: string; };
 
 type Task = {
   id: string; title: string; status: string; priority: string;
+  type: 'ONE_TIME' | 'DAILY';
   dueDate?: string; description?: string; projectId?: string;
   subtasks?: { id: string; title: string; done: boolean }[];
 };
 
 type KanbanBoard = Record<string, Task[]>;
 
-const EMPTY_FORM = { title: '', description: '', priority: 'medium', status: 'todo', dueDate: '', projectId: '' };
+const EMPTY_FORM = { title: '', description: '', priority: 'medium', status: 'todo', type: 'ONE_TIME', dueDate: '', projectId: '' };
 
 export default function Tasks() {
   const [board, setBoard]         = useState<KanbanBoard>({ todo: [], doing: [], blocked: [], review: [], done: [] });
@@ -103,6 +104,7 @@ export default function Tasks() {
       description: task.description || '',
       priority: task.priority,
       status: task.status,
+      type: task.type || 'ONE_TIME',
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
       projectId: task.projectId || '',
     });
@@ -168,6 +170,18 @@ export default function Tasks() {
             <Trash2 size={14} />
           </button>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 mt-1">
+        {task.type === 'DAILY' ? (
+          <span className="flex items-center gap-1 text-[10px] text-mint-600 bg-mint-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+            <Sparkles size={10} /> Diaria (L-V)
+          </span>
+        ) : (
+          <span className="text-[10px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-tighter">
+            Única vez
+          </span>
+        )}
       </div>
 
       {getProjectName(task.projectId) && (
@@ -314,6 +328,19 @@ export default function Tasks() {
                     <option value="review">Revisión</option>
                     <option value="done">Completado</option>
                   </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2">Tipo de Tarea</label>
+                <div className="flex gap-4">
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-xl cursor-pointer transition ${form.type === 'ONE_TIME' ? 'bg-mint-50 border-mint-200 text-mint-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                    <input type="radio" className="hidden" name="type" value="ONE_TIME" checked={form.type === 'ONE_TIME'} onChange={() => setForm({ ...form, type: 'ONE_TIME' })} />
+                    <span className="text-sm font-medium">Una vez</span>
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-xl cursor-pointer transition ${form.type === 'DAILY' ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                    <input type="radio" className="hidden" name="type" value="DAILY" checked={form.type === 'DAILY'} onChange={() => setForm({ ...form, type: 'DAILY' })} />
+                    <span className="text-sm font-medium">Diaria (L-V)</span>
+                  </label>
                 </div>
               </div>
               <div>

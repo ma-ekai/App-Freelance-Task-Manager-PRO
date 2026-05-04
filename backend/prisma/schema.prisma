@@ -49,6 +49,11 @@ model Project {
   tasks       Task[]
 }
 
+enum TaskType {
+  ONE_TIME
+  DAILY
+}
+
 model Task {
   id          String    @id @default(uuid())
   userId      String
@@ -62,6 +67,7 @@ model Task {
   category    String?
   priority    String    @default("medium")
   status      String    @default("todo")
+  type        TaskType  @default(ONE_TIME)
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
